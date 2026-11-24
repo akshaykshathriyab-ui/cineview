@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineView – Interactive Cinema Seat & Viewing-Angle System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation & Format Controls -->
+  <header class="bg-slate-950/90 border-b border-slate-800 sticky top-0 z-30 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-blue-600 text-white tracking-wider">CINEVIEW</span>
+          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight">
+            Interactive Cinema Seat &amp; Viewing-Angle System
+          </h1>
+        </div>
+        <p class="text-[11px] text-slate-400">SMPTE/THX 3D Geometry • Indian Cinema Formats &amp; Seating Tiers</p>
+      </div>
+
+      <!-- Format, Hall & Preference Selectors -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <select id="format-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-blue-500" title="Cinema Screen Format"></select>
+
+        <select id="hall-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-blue-500" title="Auditorium Layout">
+          <option value="multiplex" selected>Multiplex Hall (10 Rows)</option>
+          <option value="boutique">Luxury Boutique (LUXE / Insignia)</option>
+          <option value="singlescreen">Single-Screen (Stall &amp; Balcony)</option>
+        </select>
+
+        <select id="profile-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:border-blue-500" title="Viewing Preference"></select>
+      </div>
+    </div>
+
+    <!-- Secondary Toggle Bar -->
+    <div class="bg-slate-900/70 border-t border-slate-800/80 px-4 py-2">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-4">
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300">
+            <input id="heatmap-toggle" type="checkbox" checked class="accent-emerald-500 w-4 h-4 rounded" />
+            <span>Comfort Heatmap</span>
+          </label>
+
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300">
+            <input id="recline-toggle" type="checkbox" class="accent-blue-500 w-4 h-4 rounded" />
+            <span>Recliner Tilt (1.00m Eye Level)</span>
+          </label>
+
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300">
+            <input id="motion-4dx-toggle" type="checkbox" class="accent-amber-500 w-4 h-4 rounded" />
+            <span>4DX Motion Sim</span>
+          </label>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <select id="video-select" class="bg-slate-950 border border-slate-700 text-slate-300 rounded px-2 py-1 text-xs">
+            <option value="tears">Trailer 1: Tears of Steel (Sci-Fi)</option>
+            <option value="sintel">Trailer 2: Sintel (Fantasy)</option>
+          </select>
+          <button id="mute-btn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded border border-slate-700 font-medium">
+            🔇 Unmute Trailer
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="max-w-7xl w-full mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+
+    <!-- LEFT PANEL (5 Cols): Live First-Person Theatre POV & 4-Way Arrow Controls -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
+
+      <!-- Active Format Info Strip -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span id="format-badge" class="text-xs font-bold text-sky-400">Standard 2D Scope (2.39:1)</span>
+          <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300">Live Seat POV</span>
+        </div>
+        <p id="format-note" class="text-[11px] text-slate-400 leading-snug"></p>
+      </div>
+
+      <!-- First-Person Theatre POV Viewport -->
+      <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <div id="pov-stage" class="h-64 sm:h-72 w-full flex items-center justify-center relative">
+          <!-- Auditorium Exit Signs -->
+          <span class="absolute top-2.5 left-3 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded bg-red-950/80 text-red-400 border border-red-800/60">EXIT</span>
+          <span class="absolute top-2.5 right-3 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded bg-red-950/80 text-red-400 border border-red-800/60">EXIT</span>
+
+          <!-- ICE Format Side LED Panels (Hidden unless ICE selected) -->
+          <div id="ice-panels-left" class="hidden absolute left-2 inset-y-8 flex flex-col justify-between gap-1.5">
+            <div class="w-1.5 h-6 rounded ice-led-panel"></div>
+            <div class="w-1.5 h-6 rounded ice-led-panel"></div>
+            <div class="w-1.5 h-6 rounded ice-led-panel"></div>
+          </div>
+          <div id="ice-panels-right" class="hidden absolute right-2 inset-y-8 flex flex-col justify-between gap-1.5">
+            <div class="w-1.5 h-6 rounded ice-led-panel"></div>
+            <div class="w-1.5 h-6 rounded ice-led-panel"></div>
+            <div class="w-1.5 h-6 rounded ice-led-panel"></div>
+          </div>
+
+          <!-- ScreenX 270° Left Side Projection Wall -->
+          <div id="screenx-left" class="hidden screenx-wing-left w-20 h-28 bg-indigo-950/80 border border-sky-500/30 mr-1 flex items-center justify-center text-[9px] text-sky-300 font-semibold">
+            270° LEFT WALL
+          </div>
+
+          <!-- Virtual Cinema Screen (Transforms dynamically per seat) -->
+          <div id="virtual-screen" class="relative overflow-hidden flex items-center justify-center">
+            <!-- Offline Fallback Animated Canvas -->
+            <canvas id="fallback-canvas" width="320" height="180" class="absolute inset-0 w-full h-full object-cover"></canvas>
+            <!-- Playing Movie Trailer Video -->
+            <video id="trailer-video" autoplay loop muted playsinline class="relative z-10 w-full h-full object-cover">
+              <source src="assets/trailer.mp4" type="video/mp4" />
+              <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" type="video/mp4" />
+            </video>
+          </div>
+
+          <!-- ScreenX 270° Right Side Projection Wall -->
+          <div id="screenx-right" class="hidden screenx-wing-right w-20 h-28 bg-indigo-950/80 border border-sky-500/30 ml-1 flex items-center justify-center text-[9px] text-sky-300 font-semibold">
+            270° RIGHT WALL
+          </div>
+
+          <!-- Foreground Seat-Back Headrest Silhouettes (Sightline Obstruction Preview) -->
+          <div id="front-headrests" class="absolute bottom-0 inset-x-0 flex justify-around px-4 pointer-events-none z-20">
+            <div class="headrest-silhouette w-14 sm:w-16 h-11"></div>
+            <div class="headrest-silhouette w-14 sm:w-16 h-11"></div>
+            <div class="headrest-silhouette w-14 sm:w-16 h-11"></div>
+            <div class="headrest-silhouette w-14 sm:w-16 h-11"></div>
+          </div>
+        </div>
+
+        <!-- One-Tap Seat POV Comparison Presets -->
+        <div class="bg-slate-900 border-t border-slate-800 p-2.5">
+          <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1.5">Quick Compare Seat Views:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px]">
+            <button id="preset-front" type="button" class="bg-slate-800 hover:bg-slate-700 text-red-300 border border-slate-700 rounded py-1 px-2 font-medium">Front Strain (A7)</button>
+            <button id="preset-sweet" type="button" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 rounded py-1 px-2 font-medium">Sweet Spot (F7)</button>
+            <button id="preset-corner" type="button" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded py-1 px-2 font-medium">Corner Skew (D1)</button>
+            <button id="preset-recliner" type="button" class="bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded py-1 px-2 font-medium">Recliner (Last)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Focused Seat Optical Telemetry Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+          <div>
+            <h2 id="hud-seat-id" class="text-sm font-bold text-white">Row F • Seat 7</h2>
+            <span id="hud-price" class="text-xs font-bold text-amber-400">₹320 / seat</span>
+          </div>
+          <span id="hud-score" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">96/100</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2.5 text-center">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400">Horizontal FOV</div>
+            <div id="hud-fov" class="text-xs font-bold text-sky-400 mt-0.5">38.2°</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400">Neck Tilt (θv)</div>
+            <div id="hud-vtilt" class="text-xs font-bold text-emerald-400 mt-0.5">5.4°</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400">Axis Skew (θh)</div>
+            <div id="hud-hskew" class="text-xs font-bold text-amber-400 mt-0.5">3.1°</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+            <div class="text-[10px] text-slate-400">Focal Match</div>
+            <div id="hud-focal" class="text-[11px] font-bold text-purple-300 mt-0.5">11.5m • ~35mm</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- On-Screen 4-Way Arrow D-Pad (Left, Right, Up, Down + Select Without Going Back) -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col items-center">
+        <div class="w-full flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-200">4-Way Seat Navigator</span>
+          <span class="text-[10px] text-slate-400">Use Arrow Keys or Buttons</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-1.5 w-60">
+          <div></div>
+          <button id="btn-up" type="button" class="bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-bold py-2 rounded-lg border border-slate-700 text-sm">↑</button>
+          <div></div>
+
+          <button id="btn-left" type="button" class="bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-bold py-2 rounded-lg border border-slate-700 text-sm">←</button>
+          <button id="btn-select-seat" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-1 rounded-lg text-[11px] shadow">Select</button>
+          <button id="btn-right" type="button" class="bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-bold py-2 rounded-lg border border-slate-700 text-sm">→</button>
+
+          <div></div>
+          <button id="btn-down" type="button" class="bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-white font-bold py-2 rounded-lg border border-slate-700 text-sm">↓</button>
+          <div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL (7 Cols): Auditorium Seat Map & Itemized Per-Seat Billing -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- 4-State Seat Color Legend + Best-Group Finder -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+        <!-- Explicit 4-State Color Legend -->
+        <div class="flex flex-wrap items-center gap-3 text-[11px]">
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded seat-available inline-block"></span>
+            <span class="text-slate-300">Available</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded seat-selected inline-block"></span>
+            <span class="text-slate-300">Selected</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded seat-my-booked inline-block"></span>
+            <span class="text-slate-300">My Booked</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded seat-booked inline-block text-center text-[9px] leading-4">✕</span>
+            <span class="text-slate-400">Booked</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-4 rounded seat-reserved inline-block text-center text-[8px] leading-4">🔒</span>
+            <span class="text-slate-400">Reserved</span>
+          </div>
+        </div>
+
+        <!-- Best-Group Sliding-Window Seat Finder -->
+        <div class="flex items-center gap-1.5 text-xs">
+          <select id="group-size-select" class="bg-slate-950 border border-slate-700 text-slate-200 rounded-lg px-2 py-1">
+            <option value="2">2 Seats</option>
+            <option value="3">3 Seats</option>
+            <option value="4" selected>4 Seats</option>
+            <option value="5">5 Seats</option>
+            <option value="6">6 Seats</option>
+          </select>
+          <button id="btn-find-group" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded-lg">
+            Best Group
+          </button>
+        </div>
+      </div>
+
+      <!-- Toast Alert Banner (6-Seat Limit & Status Warnings) -->
+      <div id="toast-banner" class="hidden"></div>
+
+      <!-- Interactive Auditorium Seat Grid -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 overflow-x-auto">
+        <!-- Curved Screen Indicator -->
+        <div class="max-w-md mx-auto mb-4 text-center">
+          <div class="h-2 rounded-t-full bg-gradient-to-r from-transparent via-sky-400 to-transparent shadow-[0_6px_24px_rgba(56,189,248,0.65)]"></div>
+          <span class="text-[10px] tracking-[0.25em] uppercase text-sky-300/80 font-semibold">All Eyes This Way • Cinema Screen</span>
+        </div>
+
+        <!-- Seat Grid Container (Populated dynamically by app.js) -->
+        <div id="seat-grid" class="min-w-[460px] flex flex-col items-center"></div>
+      </div>
+
+      <!-- Itemized Selected Seats Breakdown & Total Billing Panel -->
+      <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-bold text-white">Selected Seats Breakdown</h3>
+            <span id="selected-count" class="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">0 / 6 Seats</span>
+          </div>
+          <div class="text-xs text-slate-400">
+            Hold Timer: <span id="hold-timer" class="font-mono font-bold text-amber-400">05:00</span>
+          </div>
+        </div>
+
+        <!-- Per-Seat Individual Price List -->
+        <div id="itemized-list" class="my-3 flex flex-col gap-1.5 max-h-44 overflow-y-auto"></div>
+
+        <!-- Total Amount & Action Buttons -->
+        <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-xs text-slate-400 block">Total Amount (Incl. All Selected Seats)</span>
+            <span id="total-amount" class="text-xl font-extrabold text-emerald-400">₹0</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="btn-clear-selection" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+              Clear
+            </button>
+            <button id="btn-confirm-booking" type="button" disabled class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg opacity-50 cursor-not-allowed">
+              Confirm Booking
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Digital E-Ticket Confirmation Modal -->
+  <div id="eticket-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+        <div>
+          <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">Booking Confirmed</span>
+          <h3 class="text-base font-bold text-white">CineView Digital E-Ticket</h3>
+        </div>
+        <span id="eticket-id" class="font-mono text-xs bg-slate-800 text-sky-300 px-2.5 py-1 rounded border border-slate-700">CV-000000</span>
+      </div>
+
+      <div id="eticket-details" class="mb-3"></div>
+
+      <div class="flex items-center justify-between bg-slate-950 rounded-xl p-3 border border-slate-800 mb-4">
+        <span class="text-xs font-semibold text-slate-300">Total Paid</span>
+        <span id="eticket-total" class="text-lg font-extrabold text-emerald-400">₹0</span>
+      </div>
+
+      <button id="btn-close-modal" type="button" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold">
+        Done &amp; Return to Seat Map
+      </button>
+    </div>
+  </div>
+
+  <!-- Load 3D Geometry Engine First, Interactive App Logic Second -->
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+/* =========================================================
+   CineView – Custom 3D Theatre POV & Seat State Styles
+   ========================================================= */
+
+/* Base Dark Cinema Theme */
+body {
+  background-color: #060913;
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* 1. First-Person Theatre POV Stage (3D Perspective Container) */
+#pov-stage {
+  perspective: 750px;
+  perspective-origin: 50% 48%;
+  background: radial-gradient(circle at 50% 35%, #131e38 0%, #050811 82%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glowing Virtual Cinema Screen (Transforms dynamically per seat) */
+#virtual-screen {
+  transform-style: preserve-3d;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.35s ease,
+    aspect-ratio 0.35s ease;
+  box-shadow:
+    0 0 40px rgba(59, 130, 246, 0.35),
+    0 0 90px rgba(99, 102, 241, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background-color: #000000;
+  border-radius: 4px;
+}
+
+/* Curved Frame Effect for IMAX & Curved PLF Screens */
+#virtual-screen.screen-curved {
+  border-radius: 8px / 22px;
+  box-shadow:
+    0 0 55px rgba(56, 189, 248, 0.45),
+    0 0 110px rgba(59, 130, 246, 0.22);
+}
+
+/* ScreenX 270-Degree Left & Right Side Wall Projections */
+.screenx-wing-left {
+  transform: perspective(600px) rotateY(62deg);
+  transform-origin: right center;
+  opacity: 0.75;
+  filter: blur(0.4px) brightness(0.85);
+}
+
+.screenx-wing-right {
+  transform: perspective(600px) rotateY(-62deg);
+  transform-origin: left center;
+  opacity: 0.75;
+  filter: blur(0.4px) brightness(0.85);
+}
+
+/* ICE Format Ambient Side LED Panels */
+.ice-led-panel {
+  background: linear-gradient(180deg, #38bdf8, #818cf8, #ec4899);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+  animation: icePulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes icePulse {
+  0%   { opacity: 0.45; filter: hue-rotate(0deg); }
+  100% { opacity: 0.9;  filter: hue-rotate(45deg); }
+}
+
+/* 4DX Hydraulic Seat Motion Simulation */
+.motion-4dx-active {
+  animation: motion4dx 2.4s ease-in-out infinite;
+}
+
+@keyframes motion4dx {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%      { transform: translate(-3px, 2px) rotate(-0.6deg); }
+  50%      { transform: translate(3px, -2px) rotate(0.6deg); }
+  75%      { transform: translate(-2px, -1px) rotate(-0.3deg); }
+}
+
+/* Foreground Seat Headrests (Sightline Obstruction Silhouettes) */
+.headrest-silhouette {
+  background: linear-gradient(180deg, #1e293b 0%, #030712 100%);
+  border-top: 2px solid #334155;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.85);
+  transition: transform 0.3s ease;
+}
+
+/* 2. Auditorium Seat Buttons & 4-State Color System */
+.seat-btn {
+  border-radius: 6px 6px 3px 3px;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+}
+
+.seat-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* State 1: Available Seat */
+.seat-available {
+  background-color: #1e293b;
+  border: 1.5px solid #475569;
+  color: #e2e8f0;
+}
+
+/* State 2A: Currently Selected by User (Electric Blue) */
+.seat-selected {
+  background-color: #2563eb !important;
+  border: 1.5px solid #93c5fd !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.7);
+}
+
+/* State 2B: Confirmed My Booked Seat (Emerald Green) */
+.seat-my-booked {
+  background-color: #10b981 !important;
+  border: 1.5px solid #6ee7b7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
+}
+
+/* State 3: Already Booked by Others (Dark Slate, Disabled) */
+.seat-booked {
+  background-color: #0f172a;
+  border: 1.5px solid #334155;
+  color: #64748b;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* State 4: Reserved / On Hold (Purple, Disabled) */
+.seat-reserved {
+  background-color: #581c87;
+  border: 1.5px solid #a855f7;
+  color: #f3e8ff;
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+/* Active Arrow-Navigation Cursor Ring */
+.seat-focused {
+  outline: 2.5px solid #38bdf8;
+  outline-offset: 2px;
+  transform: scale(1.14);
+  z-index: 10;
+}
+
+/* 3. Comfort Heatmap Overlay Colors (When Heatmap Toggle is ON) */
+.heatmap-high {
+  background-color: rgba(16, 185, 129, 0.24);
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
+.heatmap-mid {
+  background-color: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
+.heatmap-low {
+  background-color: rgba(239, 68, 68, 0.22);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+/* Clean Custom Scrollbar for Seat Map on Smaller Screens */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
